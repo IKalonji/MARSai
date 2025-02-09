@@ -2,9 +2,9 @@
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
+
 import "./globals.css";
-import { DiscoverWalletProviders } from "./components/DiscoverWalletProvider";
+
 
 
 const geistSans = Geist({
@@ -17,13 +17,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const metadata: Metadata = {
-  title: "MARS.ai",
-  description: "Crypto Tax Analysis for South African Regulations",
-  icons: {
-    shortcut: '/rocket.png', 
-  }
-};
+
 
 export default function RootLayout({
   children,
