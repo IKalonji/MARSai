@@ -72,7 +72,7 @@ const SuggestionsPage = () => {
           <div className="bg-gradient-to-r from-red-800 to-red-900 p-6">
             <div className="flex items-center gap-2 text-xl font-bold">
               <Lightbulb className="w-6 h-6" />
-              AI Tax Insights & Recommendations
+              AI Tax Insights &amp; Recommendations
             </div>
             <p className="text-red-200">Personalized suggestions based on your wallet analysis</p>
           </div>
@@ -82,7 +82,7 @@ const SuggestionsPage = () => {
             <div className="bg-red-900/30 p-4 rounded-lg border border-red-400/50">
               <h2 className="text-lg font-semibold text-red-200 mb-2">Analysis Summary</h2>
               <p className="text-gray-300">
-                Based on your transaction history, we've identified {suggestions.length} actionable 
+                Based on your transaction history, we have identified {suggestions.length} actionable 
                 opportunities for tax optimization and compliance improvement.
               </p>
             </div>
