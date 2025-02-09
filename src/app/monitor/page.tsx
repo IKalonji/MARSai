@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Wallet, ArrowRight, Clock, AlertCircle, Rocket } from 'lucide-react';
+import { Wallet, ArrowRight, Clock, AlertCircle, Rocket, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useSyncProviders } from "../hooks/useSyncProviders";
 
@@ -25,6 +25,12 @@ interface NetworkOption {
   chainId: number;
 }
 
+interface WalletPermission {
+  invoker: string;
+  parentCapability: string;
+  caveats: any[];
+}
+
 const SUPPORTED_NETWORKS: NetworkOption[] = [
   { id: 'eth', name: 'Ethereum', chainId: 1 },
   { id: 'base', name: 'Base', chainId: 8453 },
@@ -33,6 +39,7 @@ const SUPPORTED_NETWORKS: NetworkOption[] = [
 
 const Monitor = () => {
   // State management
+  const [hasPermissions, setHasPermissions] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
   const [selectedTimeframe, setSelectedTimeframe] = useState('year');
   const [selectedNetwork, setSelectedNetwork] = useState<string>('eth');
@@ -75,6 +82,76 @@ const Monitor = () => {
       };
     }
   }, [selectedWallet]);
+
+    // Add permission management functions
+    const checkPermissions = async (provider: any): Promise<boolean> => {
+      try {
+        const permissions = await provider.request({
+          method: "wallet_getPermissions"
+        }) as WalletPermission[];
+  
+        const hasAccountPermission = permissions.some(
+          permission => permission.parentCapability === "eth_accounts"
+        );
+  
+        setHasPermissions(hasAccountPermission);
+        return hasAccountPermission;
+      } catch (error) {
+        console.error("Error checking permissions:", error);
+        return false;
+      }
+    };
+  
+    const requestPermissions = async (provider: any): Promise<boolean> => {
+      try {
+        const permissions = await provider.request({
+          method: "wallet_requestPermissions",
+          params: [{ eth_accounts: {} }]
+        }) as WalletPermission[];
+  
+        const hasAccountPermission = permissions.some(
+          permission => permission.parentCapability === "eth_accounts"
+        );
+  
+        setHasPermissions(hasAccountPermission);
+        return hasAccountPermission;
+      } catch (error: any) {
+        if (error.code === 4001) {
+          setErrors(prev => ({
+            ...prev,
+            permissions: "Permissions needed to continue."
+          }));
+        } else {
+          setErrors(prev => ({
+            ...prev,
+            permissions: "Failed to request permissions"
+          }));
+        }
+        return false;
+      }
+    };
+  
+    const revokePermissions = async () => {
+      if (!selectedWallet?.provider) return;
+  
+      try {
+        await selectedWallet.provider.request({
+          method: "wallet_revokePermissions",
+          params: [{ eth_accounts: {} }]
+        });
+  
+        // Reset states
+        setHasPermissions(false);
+        setWalletAddress('');
+        setUserAccount('');
+        setSelectedWallet(undefined);
+        setCurrentChainId(null);
+  
+        console.log("Permissions revoked successfully");
+      } catch (error) {
+        console.error("Error revoking permissions:", error);
+      }
+    };
 
   const detectCurrentChain = async (provider: any) => {
     try {
@@ -184,14 +261,26 @@ const Monitor = () => {
   };
 
 
+  // Update the handleConnect function
   const handleConnect = async (providerWithInfo: EIP6963ProviderDetail) => {
     try {
       setErrors({});
 
-      // First detect current chain
+      // First check existing permissions
+      const hasExistingPermissions = await checkPermissions(providerWithInfo.provider);
+      
+      // If no permissions, request them
+      if (!hasExistingPermissions) {
+        const permissionsGranted = await requestPermissions(providerWithInfo.provider);
+        if (!permissionsGranted) {
+          throw new Error('Required permissions not granted');
+        }
+      }
+
+      // Detect current chain
       await detectCurrentChain(providerWithInfo.provider);
       
-      // First switch to the selected network
+      // Switch network if needed
       const network = SUPPORTED_NETWORKS.find(n => n.id === selectedNetwork);
       if (!network) {
         throw new Error('Invalid network selected');
@@ -223,6 +312,7 @@ const Monitor = () => {
       }));
     }
   };
+
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -302,7 +392,10 @@ const Monitor = () => {
                   <select
                     value={selectedNetwork}
                     onChange={(e) => setSelectedNetwork(e.target.value)}
-                    className="p-3 rounded-lg bg-white/5 border border-red-800/50 text-white"
+                    disabled={true}
+                    className={`p-3 rounded-lg bg-white/5 border border-red-800/50 text-white ${
+                      !walletAddress ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                    } appearance-none`} // Add appearance-none to remove the arrow
                   >
                     {SUPPORTED_NETWORKS.map((network) => (
                       <option key={network.id} value={network.id}>
@@ -311,24 +404,34 @@ const Monitor = () => {
                     ))}
                   </select>
                   
-                  <div>
-                    {providers.length > 0 ? providers?.map((provider: EIP6963ProviderDetail) => (
-                      <button 
-                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        key={provider.info.uuid} 
-                        onClick={() => handleConnect(provider)}
-                        disabled={isSubmitting}
-                      >
-                        <img src={provider.info.icon} alt={provider.info.name} className="w-6 h-6" />
-                        <span>Connect</span>
-                      </button>
-                    )) : (
-                      <div className="text-red-500">
-                        No Announced Wallet Providers
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  <div className="flex gap-2">
+        {walletAddress ? (
+          <button
+            onClick={revokePermissions}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg flex items-center gap-2"
+          >
+            <LogOut className="w-5 h-5" />
+            Disconnect
+          </button>
+        ) : (
+          providers.length > 0 ? providers?.map((provider: EIP6963ProviderDetail) => (
+            <button 
+              className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              key={provider.info.uuid} 
+              onClick={() => handleConnect(provider)}
+              disabled={isSubmitting}
+            >
+              <img src={provider.info.icon} alt={provider.info.name} className="w-6 h-6" />
+              <span>Connect</span>
+            </button>
+          )) : (
+            <div className="text-red-500">
+              No Announced Wallet Providers
+            </div>
+          )
+        )}
+      </div>
+    </div>
               </div>
              {errors.walletAddress && (
                 <p className="mt-2 text-red-500 text-sm">{errors.walletAddress}</p>
