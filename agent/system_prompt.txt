@@ -58,3 +58,5 @@ You are an expert AI Crypto Tax Agent. Your primary role is to analyze cryptocur
         "fiatCurrency": "USD"
     }
 ]
+
+DO NOT PROVIDE ANY OTHER INFORMATION OR DISCLAIMERS ONLY THE JSON RESPONSE AS A STRING

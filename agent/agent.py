@@ -20,9 +20,8 @@ def analyze_crypto_transactions(wallet_address):
     Returns:
         dict: A JSON object containing the analysis results.  Follows the specified format.
     """
-
     transactions = get_wallet_transactions(wallet_address)
-
+    print(transactions)
     if not transactions:
         return {
             "response": "error",
@@ -30,7 +29,7 @@ def analyze_crypto_transactions(wallet_address):
         }
 
     # Basic data validation (you'll likely want to expand this)
-    if not all(validate_transaction_data(tx) for tx in transactions):
+    if not all(validate_transaction_data(tx) for tx in transactions['data']['transactions']):
         return {
             "response": "error",
             "error": "Invalid transaction data received."
@@ -38,7 +37,8 @@ def analyze_crypto_transactions(wallet_address):
 
 
     # Load the system prompt
-    with open("system_prompt.txt", "r") as f:
+    print(os.getcwd())
+    with open("agent/system_prompt.txt", "r") as f:
         system_prompt = f.read()
 
     # Construct the message for OpenAI
@@ -49,7 +49,7 @@ def analyze_crypto_transactions(wallet_address):
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4", 
+            model="gpt-4o-mini", 
             messages=messages,
             temperature=0.7  
         )
@@ -58,6 +58,10 @@ def analyze_crypto_transactions(wallet_address):
 
         
         try:
+            print("AI response: ", ai_response)
+            cleaned_response = ai_response.replace("```json", "").replace("```", "")
+            print("Cleaned response: ", cleaned_response)
+            
             json_response = json.loads(ai_response)
 
             if not isinstance(json_response, dict) or "response" not in json_response:
@@ -81,7 +85,7 @@ def analyze_crypto_transactions(wallet_address):
 
 
 
-    except openai.error.OpenAIError as e:
+    except Exception as e:
         print(f"OpenAI API Error: {e}")
         return {
             "response": "error",
