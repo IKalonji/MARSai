@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Download, Filter, PieChart, ArrowUpRight, ArrowDownRight, AlertCircle, Rocket } from 'lucide-react';
+import { Download, Filter, PieChart, ArrowUpRight, Rocket } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
 

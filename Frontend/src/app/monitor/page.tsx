@@ -13,12 +13,6 @@ interface ValidationErrors {
   network?: string;
 }
 
-interface AnalysisType {
-  capitalGains: boolean;
-  miningIncome: boolean;
-  stakingRewards: boolean;
-}
-
 interface NetworkOption {
   id: string;
   name: string;
@@ -39,13 +33,13 @@ const SUPPORTED_NETWORKS: NetworkOption[] = [
 
 const Monitor = () => {
   // State management
-  const [hasPermissions, setHasPermissions] = useState(false);
+  const [, setHasPermissions] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
   const [selectedTimeframe, setSelectedTimeframe] = useState('year');
   const [selectedNetwork, setSelectedNetwork] = useState<string>('eth');
   const [currentChainId, setCurrentChainId] = useState<string | null>(null);
   const [selectedWallet, setSelectedWallet] = useState<EIP6963ProviderDetail>();
-  const [userAccount, setUserAccount] = useState<string>('');
+  const [, setUserAccount] = useState<string>('');
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const providers = useSyncProviders();
@@ -243,20 +237,6 @@ const Monitor = () => {
         }));
       }
       throw error;
-    }
-  };
-
-  const handleNetworkChange = async (networkId: string) => {
-    const network = SUPPORTED_NETWORKS.find(n => n.id === networkId);
-    if (!network) return;
-
-    setSelectedNetwork(networkId);
-    if (selectedWallet) {
-      try {
-        await switchNetwork(network.chainId);
-      } catch (error) {
-        console.error('Failed to switch network:', error);
-      }
     }
   };
 
