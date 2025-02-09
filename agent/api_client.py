@@ -18,7 +18,7 @@ def get_wallet_transactions(wallet_address, api_url=None):
         print("Error: TRANSACTION_API_URL not found in environment variables or provided as argument")
         return None
 
-    url = f"{api_url}/{wallet_address}"  
+    url = f"{api_url}{wallet_address}"  
     try:
         response = requests.get(url)
         response.raise_for_status()  
