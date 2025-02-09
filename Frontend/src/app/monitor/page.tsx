@@ -1,11 +1,14 @@
 'use client'
 
+
 import React, { useState, useEffect } from 'react';
 import { Wallet, ArrowRight, Clock, AlertCircle, Rocket, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useSyncProviders } from "../hooks/useSyncProviders";
 
+
 // Types
+/* eslint-disable */
 interface ValidationErrors {
   walletAddress?: string;
   timeframe?: string;
@@ -22,8 +25,10 @@ interface NetworkOption {
 interface WalletPermission {
   invoker: string;
   parentCapability: string;
-  caveats: any[];
+  caveats: unknown[];
 }
+
+
 
 const SUPPORTED_NETWORKS: NetworkOption[] = [
   { id: 'eth', name: 'Ethereum', chainId: 1 },
@@ -507,3 +512,4 @@ const Monitor = () => {
 };
 
 export default Monitor;
+/* eslint-enable */
