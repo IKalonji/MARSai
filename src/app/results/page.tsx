@@ -55,9 +55,9 @@ const ResultsPage = () => {
           <span className="text-2xl font-bold">MARS.ai</span>
         </div>
         <nav className="hidden sm:flex gap-8">
-          <Link href="/" className="hover:text-red-300 transition-colors">Home</Link>
-          <Link href="/monitor" className="hover:text-red-300 transition-colors">Monitor</Link>
-          <Link href="/features" className="hover:text-red-300 transition-colors">Features</Link>
+        <Link href="/home" className="hover:text-red-300 transition-colors">Mars</Link>
+            <Link href="/results" className="hover:text-red-300 transition-colors">Results</Link>
+            <Link href="/suggestions" className="hover:text-red-300 transition-colors">Suggestions</Link>
         </nav>
       </header>
 

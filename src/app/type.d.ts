@@ -18,6 +18,8 @@ interface EIP6963ProviderInfo {
   }
   
   interface EIP1193Provider {
+    on(arg0: string, handleChainChanged: (chainId: string) => void): unknown
+    removeListener(arg0: string, handleChainChanged: (chainId: string) => void): unknown
     isStatus?: boolean
     host?: string
     path?: string

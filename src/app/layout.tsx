@@ -6,6 +6,7 @@ import Link from "next/link";
 import "./globals.css";
 import { DiscoverWalletProviders } from "./components/DiscoverWalletProvider";
 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -16,9 +17,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
- const metadata: Metadata = {
-  title: "CryptoTax SA",
+const metadata: Metadata = {
+  title: "MARS.ai",
   description: "Crypto Tax Analysis for South African Regulations",
+  icons: {
+    shortcut: '/rocket.png', 
+  }
 };
 
 export default function RootLayout({
@@ -28,7 +32,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      
+      <head>
+        <link rel="shortcut icon" href='./rocket.png' />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
