@@ -37,7 +37,7 @@ def analyze_crypto_transactions(wallet_address):
 
 
     # Load the system prompt
-    print(os.getcwd())
+    
     with open("agent/system_prompt.txt", "r") as f:
         system_prompt = f.read()
 
@@ -58,13 +58,14 @@ def analyze_crypto_transactions(wallet_address):
 
         
         try:
-            print("AI response: ", ai_response)
+            
             cleaned_response = ai_response.replace("```json", "").replace("```", "")
+
             print("Cleaned response: ", cleaned_response)
             
-            json_response = json.loads(ai_response)
+            json_response = json.loads(cleaned_response)
 
-            if not isinstance(json_response, dict) or "response" not in json_response:
+            if not isinstance(json_response, dict) or "analysis" not in json_response:
                 raise ValueError("Invalid JSON response format from AI.")
 
             return json_response 
