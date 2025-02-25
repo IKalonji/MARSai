@@ -48,6 +48,7 @@ const Monitor = () => {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const providers = useSyncProviders();
+  const [agentName, setAgentName] = useState('');
 
   useEffect(() => {
     if (selectedWallet) {
@@ -289,6 +290,15 @@ const Monitor = () => {
       setSelectedWallet(providerWithInfo);
       setUserAccount(address);
       setWalletAddress(address);
+
+      fetch('http://localhost:8085/agent/has_agent/'+address)
+      .then(response => {
+        var obj_response = response.json()
+        if (obj_response['result'] == 'ok'){
+          setAgentName(obj_response['name'])
+        }
+      })
+      .catch(error => console.error(error));
     } catch (error) {
       console.error(error);
       setErrors(prev => ({
@@ -457,7 +467,7 @@ const Monitor = () => {
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    Mining Income
+                    Income Tax
                   </label>
                 </div>
               </div>
@@ -498,7 +508,7 @@ const Monitor = () => {
                   </>
                 ) : (
                   <>
-                    Analyze Wallet
+                    {agentName == '' ? "Deploy Agent" : ("Launch "+ agentName)}
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}

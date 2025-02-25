@@ -1,14 +1,19 @@
 from flask import Flask, request
+from flask_cors import CORS, cross_origin
 from agent import Agent
 
 app = Flask(__name__)
+CORS(app=app)
+
 deployed_agents = {}
 
 @app.route("/")
+@cross_origin()
 def hello_world():
     return "<p>TAX AGENT!</p>"
 
 @app.route("/agent/has_agent/<address>", methods=["GET"])
+@cross_origin()
 def has_agent(address):
     try: 
         if deployed_agents.get(address) != None:
@@ -18,6 +23,7 @@ def has_agent(address):
         return {"result": "error", "error": e}
 
 @app.route("/agent/deploy/<address>/<name>", methods=["GET"])
+@cross_origin()
 def deploy(address, name):
     if deployed_agents.get(address) != None:
         return {"error": "User already has an agent"}
@@ -29,6 +35,7 @@ def deploy(address, name):
         return {"result": "error", "error": e}
 
 @app.route("/agent/analyze/<address>", methods=["GET"])
+@cross_origin()
 def analyze(address):
     print("called analyze")
     try: 
@@ -39,6 +46,7 @@ def analyze(address):
         return {"result": "error", "error": e}
     
 @app.route("/agent/chat/<address>", methods=["POST"])
+@cross_origin()
 def chat(address):
     body = request.get_json()
     print("request body, ", body)
