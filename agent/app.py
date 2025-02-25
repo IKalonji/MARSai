@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from agent import Agent
 
 app = Flask(__name__)
@@ -24,23 +24,27 @@ def deploy(address, name):
     try: 
         user_agent = Agent(address, name)
         deployed_agents[address] = user_agent
-        return {"result" : "ok", "name": user_agent.name}
+        return {"result" : "ok", "name": deployed_agents[address].name}
     except Exception as e:
         return {"result": "error", "error": e}
 
 @app.route("/agent/analyze/<address>", methods=["GET"])
 def analyze(address):
+    print("called analyze")
     try: 
-        agent = deployed_agents.get("address")
-        return agent.analyze_crypto_transactions(address)
+        agent = deployed_agents.get(address)
+        print("Agent found, ", agent)
+        return agent.analyze_crypto_transactions()
     except Exception as e:
         return {"result": "error", "error": e}
     
-@app.route("/agent/chat/<address>", methods=["GET"])
+@app.route("/agent/chat/<address>", methods=["POST"])
 def chat(address):
+    body = request.get_json()
+    print("request body, ", body)
     try: 
-        agent = deployed_agents.get("address")
-        return agent.agent_chat(address)
+        agent = deployed_agents.get(address)
+        return agent.agent_chat(body['query'])
     except Exception as e:
         return {"result": "error", "error": e}
     

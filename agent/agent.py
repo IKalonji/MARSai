@@ -10,6 +10,7 @@ load_dotenv()
 class Agent():
 
     def __init__(self, wallet_address, name):
+        print("agent init")
         self.name = name
         self.agent_key = os.getenv("OPENAI_API_KEY")
         self.wallet_address = wallet_address
@@ -46,6 +47,7 @@ class Agent():
         return self.send_query_to_llm(system_prompt, message)
 
     def send_query_to_llm(self, system_prompt, content):
+        print("Sending to LLM")
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": content}
@@ -64,7 +66,7 @@ class Agent():
             try:
                 cleaned_response = ai_response.replace("```json", "").replace("```", "")
                 json_response = json.loads(cleaned_response)
-
+                print(json_response)
                 if not isinstance(json_response, dict) or "analysis" not in json_response:
                     raise ValueError("Invalid JSON response format from AI.")
 
@@ -101,6 +103,7 @@ class Agent():
         Returns:
             dict: A JSON object containing the analysis results.  Follows the specified format.
         """
+        print("In analyze")
         transactions = get_wallet_transactions(self.wallet_address)
         
         if not transactions:
