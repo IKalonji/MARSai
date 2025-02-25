@@ -7,96 +7,124 @@ from utils import validate_transaction_data
 
 load_dotenv()  
 
+class Agent():
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+    def __init__(self, wallet_address, name):
+        self.name = name
+        self.agent_key = os.getenv("OPENAI_API_KEY")
+        self.wallet_address = wallet_address
+        openai.api_key = self.agent_key
+        self.context = None
 
-def analyze_crypto_transactions(wallet_address):
-    """
-    Analyzes cryptocurrency transactions for potential tax implications.
+    def get_system_prompt(self, file):
 
-    Args:
-        wallet_address (str): The cryptocurrency wallet address to analyze.
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(script_dir, file)
 
-    Returns:
-        dict: A JSON object containing the analysis results.  Follows the specified format.
-    """
-    transactions = get_wallet_transactions(wallet_address)
-    print(transactions)
-    if not transactions:
-        return {
-            "response": "error",
-            "error": "Failed to retrieve transaction data."
-        }
-
-    # Basic data validation (you'll likely want to expand this)
-    if not all(validate_transaction_data(tx) for tx in transactions['data']['transactions']):
-        return {
-            "response": "error",
-            "error": "Invalid transaction data received."
-        }
-
-
-    # Load the system prompt
+        with open(file_path, "r") as f:
+            system_prompt = f.read()
+        return system_prompt
     
-    with open("agent/system_prompt.txt", "r") as f:
-        system_prompt = f.read()
+    def agent_chat(self, question):
+        """
+        Chat with the agent based on the current tax report and suggestions.
 
-    # Construct the message for OpenAI
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": json.dumps(transactions)}
-    ]
+        Returns:
+            dict: A JSON object containing the chat results.  Follows the specified format.
+        """
 
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o-mini", 
-            messages=messages,
-            temperature=0.7  
-        )
+        system_prompt = self.get_system_prompt("system_chat_prompt.txt")
 
-        ai_response = response.choices[0].message.content
-
+        if self.context == None:
+            return {
+                    "response": "error",
+                    "error": "No analysis found in the agent context, try getting your analysis first."
+                }
         
+        message = f"{self.context}\n{question}?"
+
+        return self.send_query_to_llm(system_prompt, message)
+
+    def send_query_to_llm(self, system_prompt, content):
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": content}
+        ]
+
         try:
-            
-            cleaned_response = ai_response.replace("```json", "").replace("```", "")
+            response = openai.ChatCompletion.create(
+                model="gpt-4o-mini", 
+                messages=messages,
+                temperature=0.7  
+            )
 
-            print("Cleaned response: ", cleaned_response)
-            
-            json_response = json.loads(cleaned_response)
+            ai_response = response.choices[0].message.content
+            self.context = ai_response
 
-            if not isinstance(json_response, dict) or "analysis" not in json_response:
-                raise ValueError("Invalid JSON response format from AI.")
+            try:
+                cleaned_response = ai_response.replace("```json", "").replace("```", "")
+                json_response = json.loads(cleaned_response)
 
-            return json_response 
+                if not isinstance(json_response, dict) or "analysis" not in json_response:
+                    raise ValueError("Invalid JSON response format from AI.")
 
-        except json.JSONDecodeError as e:
-            print(f"JSON Decode Error: {e}")
-            print(f"AI Response: {ai_response}") 
+                return json_response 
+
+            except json.JSONDecodeError as e:
+                print(f"JSON Decode Error: {e}")
+                print(f"AI Response: {ai_response}") 
+                return {
+                    "response": "error",
+                    "error": "Failed to decode JSON response from AI. Check AI output in logs."
+                }
+            except ValueError as e:
+                print(json_response)
+                print(f"Value Error: {e}")
+                return {
+                    "response": "error",
+                    "error": str(e)
+                }
+        except Exception as e:
+            print(f"OpenAI API Error: {e}")
             return {
                 "response": "error",
-                "error": "Failed to decode JSON response from AI. Check AI output in logs."
+                "error": f"OpenAI API Error: {e}"
             }
-        except ValueError as e:
-            print(f"Value Error: {e}")
+
+    def analyze_crypto_transactions(self):
+        """
+        Analyzes cryptocurrency transactions for potential tax implications.
+
+        Args:
+            wallet_address (str): The cryptocurrency wallet address to analyze.
+
+        Returns:
+            dict: A JSON object containing the analysis results.  Follows the specified format.
+        """
+        transactions = get_wallet_transactions(self.wallet_address)
+        
+        if not transactions:
             return {
                 "response": "error",
-                "error": str(e)
+                "error": "Failed to retrieve transaction data."
             }
 
+        if not all(validate_transaction_data(tx) for tx in transactions['data']['transactions']):
+            return {
+                "response": "error",
+                "error": "Invalid transaction data received."
+            }
 
+        system_prompt = self.get_system_prompt("system_prompt.txt")
 
-    except Exception as e:
-        print(f"OpenAI API Error: {e}")
-        return {
-            "response": "error",
-            "error": f"OpenAI API Error: {e}"
-        }
-
-
-if __name__ == '__main__':
+        return self.send_query_to_llm(system_prompt, json.dumps(transactions))
     
-    wallet_address = ""  
-    tax_analysis = analyze_crypto_transactions(wallet_address)
-
+    
+# Test Agent
+if __name__ == '__main__':
+    wallet_address = "0x5590882e54bb029ba24d54908cd225a1a27cb398" 
+    agent = Agent(os.getenv("OPENAI_API_KEY"), wallet_address)
+    tax_analysis = agent.analyze_crypto_transactions()
     print(json.dumps(tax_analysis, indent=2))
+    chat_response = agent.agent_chat("Which of my assets generated the highest tax obligation")
+    print(json.dumps(chat_response, indent=2))
