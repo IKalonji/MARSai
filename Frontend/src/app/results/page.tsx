@@ -29,7 +29,7 @@ const ResultsPage = () => {
         }
         
         // Call your API endpoint
-        const response = await fetch(`http://localhost:8085/agent/analyze/${walletAddress}`);
+        const response = await fetch(`https://mars-ai-agent-igpko.ondigitalocean.app/agent/analyze/${walletAddress}`);
         
         if (!response.ok) {
           throw new Error(`API error: ${response.status} ${response.statusText}`);

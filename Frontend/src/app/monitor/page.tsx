@@ -295,7 +295,7 @@ const Monitor = () => {
       setUserAccount(address);
       setWalletAddress(address);
 
-      fetch('http://localhost:8085/agent/has_agent/' + address)
+      fetch('https://mars-ai-agent-igpko.ondigitalocean.app/agent/has_agent/' + address)
   .then(response => response.json())
   .then(data => {
     if (data.result === 'ok') {
@@ -346,7 +346,7 @@ const Monitor = () => {
       const agentNameToUse = `Agent_${walletAddress.slice(0, 6)}`;
       
       // Deploy agent
-      const deployResponse = await fetch(`http://127.0.0.1:8085/agent/deploy/${walletAddress}/${agentNameToUse}`);
+      const deployResponse = await fetch(`https://mars-ai-agent-igpko.ondigitalocean.app/agent/deploy/${walletAddress}/${agentNameToUse}`);
       
       const deployData = await deployResponse.json();
       if (deployData.result === 'ok') {
