@@ -287,18 +287,24 @@ const Monitor = () => {
         throw new Error('Invalid wallet address format');
       }
 
+      // Store the wallet address in localStorage
+      localStorage.setItem('walletAddress', address);
+
+
       setSelectedWallet(providerWithInfo);
       setUserAccount(address);
       setWalletAddress(address);
 
-      fetch('http://localhost:8085/agent/has_agent/'+address)
-      .then(response => {
-        var obj_response = response.json()
-        if (obj_response['result'] == 'ok'){
-          setAgentName(obj_response['name'])
-        }
-      })
-      .catch(error => console.error(error));
+      fetch('http://localhost:8085/agent/has_agent/' + address)
+  .then(response => response.json())
+  .then(data => {
+    if (data.result === 'ok') {
+      setAgentName(data.name);
+    }
+  })
+  .catch(error => console.error('Error fetching agent data:', error));
+
+  
     } catch (error) {
       console.error(error);
       setErrors(prev => ({
@@ -333,9 +339,25 @@ const Monitor = () => {
 
       console.log('Submitting analysis:', analysisData);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Check if we need to deploy an agent first
+    if (agentName === '') {
+      console.log('No agent found, deploying new agent...');
+      // Create a name for the agent
+      const agentNameToUse = `Agent_${walletAddress.slice(0, 6)}`;
       
+      // Deploy agent
+      const deployResponse = await fetch(`http://127.0.0.1:8085/agent/deploy/${walletAddress}/${agentNameToUse}`);
+      
+      const deployData = await deployResponse.json();
+      if (deployData.result === 'ok') {
+        console.log('Agent deployed successfully:', deployData.name);
+        setAgentName(deployData.name);
+        // Wait a moment for the agent to be fully deployed
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        throw new Error(deployData.error || 'Failed to deploy agent');
+      }
+    }
       // Navigate to results
       window.location.href = '/results';
     } catch (error) {
@@ -348,6 +370,7 @@ const Monitor = () => {
       setIsSubmitting(false);
     }
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-red-900 to-red-950 text-white p-8 pb-20 sm:p-20">
       <header className="flex items-center justify-between mb-16">
