@@ -45,7 +45,7 @@ const SuggestionsPage = () => {
           throw new Error('No wallet address found. Please connect your wallet first.');
         }
         
-        const response = await fetch(`http://127.0.0.1:8085/agent/analyze/${walletAddress}`);
+        const response = await fetch(`http://mars-ai-agent-igpko.ondigitalocean.app/agent/analyze/${walletAddress}`);
         
         if (!response.ok) {
           throw new Error(`API error: ${response.status} ${response.statusText}`);
@@ -173,7 +173,7 @@ const SuggestionsPage = () => {
       }
       
       // Call API to get bot response
-      const response = await fetch(`http://127.0.0.1:8085/agent/chat/${walletAddress}`, {
+      const response = await fetch(`http://mars-ai-agent-igpko.ondigitalocean.app/agent/chat/${walletAddress}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
