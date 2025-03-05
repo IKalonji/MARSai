@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Lightbulb, 
   TrendingUp, 
@@ -12,7 +12,8 @@ import {
   Rocket,
   Send,
   Bot,
-  User
+  User,
+  Loader
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -21,38 +22,11 @@ const SuggestionsPage = () => {
     { id: 1, sender: 'bot', text: 'Hello! I\'m your MARS.ai tax assistant. How can I help you today?' }
   ]);
   const [inputMessage, setInputMessage] = useState('');
-  const suggestions = [
-    {
-      id: 1,
-      type: 'optimization',
-      title: 'Tax Loss Harvesting Opportunity',
-      description: 'Consider selling Asset X at a loss to offset R15,000 in gains from Asset Y. This could reduce your tax liability by approximately R6,750.',
-      priority: 'high',
-      potentialSavings: 6750,
-      deadline: '2024-02-28',
-      icon: TrendingUp,
-      status: 'actionable'
-    },
-    {
-      id: 2,
-      type: 'compliance', 
-      title: 'Missing Cost Basis Documentation',
-      description: 'Several transactions from March 2023 lack proper cost basis documentation. Gather exchange statements to support these transactions for SARS compliance.',
-      priority: 'urgent',
-      icon: AlertTriangle,
-      status: 'attention_required'
-    },
-    {
-      id: 3,
-      type: 'strategy',
-      title: 'Staking Rewards Optimization',
-      description: 'Your staking rewards should be declared monthly to optimize tax liability. Set up a monthly reporting schedule for better tax efficiency.',
-      priority: 'medium',
-      potentialSavings: 2300,
-      icon: Lightbulb,
-      status: 'recommendation'
-    }
-  ];
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isSending, setIsSending] = useState(false);
+  const chatContainerRef = useRef(null);
 
   const priorityColors = {
     urgent: 'bg-red-900/30 border-red-400/50 text-red-200',
@@ -60,28 +34,181 @@ const SuggestionsPage = () => {
     medium: 'bg-red-900/30 border-red-400/50 text-red-200'
   };
 
-  const handleSendMessage = () => {
-    if (inputMessage.trim() === '') return;
+  // Fetch suggestions from API
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      setLoading(true);
+      try {
+        const walletAddress = localStorage.getItem('walletAddress');
+        
+        if (!walletAddress) {
+          throw new Error('No wallet address found. Please connect your wallet first.');
+        }
+        
+        const response = await fetch(`http://127.0.0.1:8085/agent/analyze/${walletAddress}`);
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.result === 'error') {
+          throw new Error(`Server error: ${data.error}`);
+        }
+        
+        // Extract suggestions from the response
+        if (data.suggestions && Array.isArray(data.suggestions)) {
+          // Transform the suggestions into the format expected by the UI
+          const formattedSuggestions = data.suggestions.map((suggestion, index) => ({
+            id: index + 1,
+            type: getTypeFromSuggestion(suggestion),
+            title: getTitleFromSuggestion(suggestion),
+            description: suggestion,
+            priority: getPriorityFromSuggestion(suggestion),
+            icon: getIconForSuggestion(suggestion),
+            status: 'recommendation'
+          }));
+          
+          setSuggestions(formattedSuggestions);
+        } else {
+          // Fallback to default suggestions if needed
+          setSuggestions([
+            {
+              id: 1,
+              type: 'optimization',
+              title: 'Tax Loss Harvesting Opportunity',
+              description: 'Consider employing tax-loss harvesting strategies to offset gains.',
+              priority: 'high',
+              icon: TrendingUp,
+              status: 'actionable'
+            },
+            {
+              id: 2,
+              type: 'compliance', 
+              title: 'Documentation Requirements',
+              description: 'Maintain comprehensive records of all transactions to ensure accurate reporting.',
+              priority: 'medium',
+              icon: AlertTriangle,
+              status: 'attention_required'
+            },
+            {
+              id: 3,
+              type: 'strategy',
+              title: 'Professional Consultation',
+              description: 'Consult with a tax professional for tailored advice based on your situation.',
+              priority: 'medium',
+              icon: Lightbulb,
+              status: 'recommendation'
+            }
+          ]);
+        }
+      } catch (err) {
+        console.error('Error fetching suggestions:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, []);
+
+  // Helper functions to categorize suggestions
+  const getTypeFromSuggestion = (suggestion) => {
+    if (suggestion.toLowerCase().includes('harvest')) return 'optimization';
+    if (suggestion.toLowerCase().includes('record') || suggestion.toLowerCase().includes('document')) return 'compliance';
+    if (suggestion.toLowerCase().includes('professional') || suggestion.toLowerCase().includes('consult')) return 'strategy';
+    return 'strategy';
+  };
+
+  const getTitleFromSuggestion = (suggestion) => {
+    if (suggestion.toLowerCase().includes('harvest')) return 'Tax Loss Harvesting';
+    if (suggestion.toLowerCase().includes('record') || suggestion.toLowerCase().includes('document')) return 'Documentation Requirements';
+    if (suggestion.toLowerCase().includes('professional') || suggestion.toLowerCase().includes('consult')) return 'Professional Consultation';
+    return suggestion.split('.')[0];
+  };
+
+  const getPriorityFromSuggestion = (suggestion) => {
+    if (suggestion.toLowerCase().includes('urgent') || suggestion.toLowerCase().includes('immediately')) return 'urgent';
+    if (suggestion.toLowerCase().includes('consider') || suggestion.toLowerCase().includes('should')) return 'high';
+    return 'medium';
+  };
+
+  const getIconForSuggestion = (suggestion) => {
+    if (suggestion.toLowerCase().includes('harvest') || suggestion.toLowerCase().includes('strategy')) return TrendingUp;
+    if (suggestion.toLowerCase().includes('record') || suggestion.toLowerCase().includes('document')) return AlertTriangle;
+    return Lightbulb;
+  };
+
+  // Auto-scroll to bottom of chat when new messages are added
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  const handleSendMessage = async () => {
+    if (inputMessage.trim() === '' || isSending) return;
     
     // Add user message
     const newUserMessage = {
       id: chatMessages.length + 1,
       sender: 'user',
       text: inputMessage
-    }; 
+    };
     
     setChatMessages(prev => [...prev, newUserMessage]);
-    setInputMessage('');
     
-    // Simulate bot response
-    setTimeout(() => {
+    const messageToSend = inputMessage;
+    setInputMessage('');
+    setIsSending(true);
+    
+    try {
+      // Get wallet address
+      const walletAddress = localStorage.getItem('walletAddress');
+      
+      if (!walletAddress) {
+        throw new Error('No wallet connected. Please connect your wallet first.');
+      }
+      
+      // Call API to get bot response
+      const response = await fetch(`http://127.0.0.1:8085/agent/chat/${walletAddress}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: messageToSend }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Add bot response
       const botResponse = {
         id: chatMessages.length + 2,
         sender: 'bot',
-        text: `Thanks for your message. I'll help you with your query about "${inputMessage}". Would you like specific information about tax optimization or compliance requirements?`
+        text: data.response || "I'm sorry, I couldn't process your request. Please try again."
       };
+      
       setChatMessages(prev => [...prev, botResponse]);
-    }, 1000);
+    } catch (error) {
+      console.error('Chat error:', error);
+      
+      // Add error message from bot
+      const errorResponse = {
+        id: chatMessages.length + 2,
+        sender: 'bot',
+        text: `I encountered an error: ${error.message}. Please try again later.`
+      };
+      
+      setChatMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -89,6 +216,30 @@ const SuggestionsPage = () => {
       handleSendMessage();
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-red-900 to-red-950 text-white flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <Loader className="w-10 h-10 text-red-500 animate-spin mb-4" />
+          <p className="text-xl">Loading suggestions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-red-900 to-red-950 text-white flex flex-col items-center justify-center p-8">
+        <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Error Loading Suggestions</h2>
+        <p className="text-red-300 mb-6 text-center max-w-md">{error}</p>
+        <Link href="/monitor" className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg transition-colors">
+          Back to Monitor
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-red-900 to-red-950 text-white">
@@ -217,7 +368,10 @@ const SuggestionsPage = () => {
               <p className="text-red-200 text-sm">Get answers to your tax questions</p>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div 
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto p-4 space-y-4"
+            >
               {chatMessages.map((message) => (
                 <div 
                   key={message.id} 
@@ -244,6 +398,21 @@ const SuggestionsPage = () => {
                   </div>
                 </div>
               ))}
+              {isSending && (
+                <div className="flex justify-start">
+                  <div className="max-w-xs rounded-lg px-3 py-2 bg-red-900/50 border border-red-800 text-red-100 rounded-tl-none">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Bot className="w-4 h-4" />
+                      <span className="text-xs font-semibold">MARS.ai</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse delay-150"></div>
+                      <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse delay-300"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-4 border-t border-red-800/50 bg-red-950/50">
@@ -255,12 +424,14 @@ const SuggestionsPage = () => {
                   onKeyDown={handleKeyPress}
                   placeholder="Type your question..."
                   className="flex-1 bg-red-900/30 text-white placeholder-red-300/50 border border-red-800/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  disabled={isSending}
                 />
                 <button
                   onClick={handleSendMessage}
-                  className="p-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                  disabled={isSending || inputMessage.trim() === ''}
+                  className={`p-2 ${isSending ? 'bg-red-700' : 'bg-red-500 hover:bg-red-600'} rounded-lg transition-colors`}
                 >
-                  <Send className="w-5 h-5" />
+                  {isSending ? <Loader className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                 </button>
               </div>
               <div className="text-red-400/70 text-xs mt-2">
@@ -273,6 +444,5 @@ const SuggestionsPage = () => {
     </div>
   );
 };
-
 
 export default SuggestionsPage;
