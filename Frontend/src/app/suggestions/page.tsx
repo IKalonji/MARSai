@@ -76,7 +76,7 @@ const SuggestionsPage = () => {
           setSuggestions([
             {
               id: 1,
-              type: 'optimization',
+              type: 'Optimization',
               title: 'Tax Loss Harvesting Opportunity',
               description: 'Consider employing tax-loss harvesting strategies to offset gains.',
               priority: 'high',
@@ -85,7 +85,7 @@ const SuggestionsPage = () => {
             },
             {
               id: 2,
-              type: 'compliance', 
+              type: 'Compliance', 
               title: 'Documentation Requirements',
               description: 'Maintain comprehensive records of all transactions to ensure accurate reporting.',
               priority: 'medium',
@@ -94,7 +94,7 @@ const SuggestionsPage = () => {
             },
             {
               id: 3,
-              type: 'strategy',
+              type: 'Strategy',
               title: 'Professional Consultation',
               description: 'Consult with a tax professional for tailored advice based on your situation.',
               priority: 'medium',
