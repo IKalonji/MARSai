@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Lightbulb, 
   TrendingUp, 
@@ -34,95 +34,6 @@ const SuggestionsPage = () => {
     medium: 'bg-red-900/30 border-red-400/50 text-red-200'
   };
 
-  // Fetch suggestions from API
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      setLoading(true);
-      try {
-        const walletAddress = localStorage.getItem('walletAddress');
-        
-        if (!walletAddress) {
-          throw new Error('No wallet address found. Please connect your wallet first.');
-        }
-        
-        const response = await fetch(`https://mars-ai-agent-igpko.ondigitalocean.app/agent/analyze/${walletAddress}`);
-        
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.result === 'error') {
-          throw new Error(`Server error: ${data.error}`);
-        }
-        
-        // Extract suggestions from the response
-        if (data.suggestions && Array.isArray(data.suggestions)) {
-          // Transform the suggestions into the format expected by the UI
-          console.log("Got suggestions -> ");
-          
-      
-          const formattedSuggestions = data.suggestions.map((suggestion, index) => ({
-            id: index + 1,
-            type: getTypeFromSuggestion(suggestion),
-            title: getTitleFromSuggestion(suggestion),
-            description: suggestion,
-            priority: getPriorityFromSuggestion(suggestion),
-            icon: getIconForSuggestion(suggestion),
-            status: 'recommendation'
-          }));
-          console.log("Formatted suggestions -->", formattedSuggestions)
-          setSuggestions(formattedSuggestions);
-          console.log("Suggetions from state --> ", suggestions)
-          console.log("Suggetions from API --> ", data.suggestions);
-          
-        } else {
-          // Fallback to default suggestions if needed
-          console.log("No suggestions -> Fallback");
-          
-          setSuggestions([
-            {
-              id: 1,
-              type: 'Optimization',
-              title: 'Tax Loss Harvesting Opportunity',
-              description: 'Consider employing tax-loss harvesting strategies to offset gains.',
-              priority: 'high',
-              icon: TrendingUp,
-              status: 'actionable'
-            },
-            {
-              id: 2,
-              type: 'Compliance', 
-              title: 'Documentation Requirements',
-              description: 'Maintain comprehensive records of all transactions to ensure accurate reporting.',
-              priority: 'medium',
-              icon: AlertTriangle,
-              status: 'attention_required'
-            },
-            {
-              id: 3,
-              type: 'Strategy',
-              title: 'Professional Consultation',
-              description: 'Consult with a tax professional for tailored advice based on your situation.',
-              priority: 'medium',
-              icon: Lightbulb,
-              status: 'recommendation'
-            }
-          ]);
-        }
-      } catch (err) {
-        console.error('Error fetching suggestions:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSuggestions();
-  }, [suggestions]);
-
-  // Helper functions to categorize suggestions
   const getTypeFromSuggestion = (suggestion) => {
     if (suggestion.toLowerCase().includes('harvest')) return 'optimization';
     if (suggestion.toLowerCase().includes('record') || suggestion.toLowerCase().includes('document')) return 'compliance';
@@ -148,6 +59,108 @@ const SuggestionsPage = () => {
     if (suggestion.toLowerCase().includes('record') || suggestion.toLowerCase().includes('document')) return AlertTriangle;
     return Lightbulb;
   };
+
+  // Define fetchSuggestions using useCallback to maintain reference stability
+  const fetchSuggestions = useCallback(async () => {
+    console.log("Fetching suggestions...");
+    setLoading(true);
+    
+    try {
+      const walletAddress = localStorage.getItem('walletAddress');
+      
+      if (!walletAddress) {
+        throw new Error('No wallet address found. Please connect your wallet first.');
+      }
+      
+      console.log(`Fetching data for wallet: ${walletAddress}`);
+      const response = await fetch(`https://mars-ai-agent-igpko.ondigitalocean.app/agent/analyze/${walletAddress}`);
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log("API response:", data);
+      
+      if (data.result === 'error') {
+        throw new Error(`Server error: ${data.error}`);
+      }
+      
+      // Extract suggestions from the response
+      if (data.suggestions && Array.isArray(data.suggestions)) {
+        console.log(`Processing ${data.suggestions.length} suggestions`);
+        
+        // Transform the suggestions into the format expected by the UI
+        const formattedSuggestions = data.suggestions.map((suggestion, index) => ({
+          id: index + 1,
+          type: getTypeFromSuggestion(suggestion),
+          title: getTitleFromSuggestion(suggestion),
+          description: suggestion,
+          priority: getPriorityFromSuggestion(suggestion),
+          icon: getIconForSuggestion(suggestion),
+          status: 'recommendation'
+        }));
+        
+        console.log("Formatted suggestions:", formattedSuggestions);
+        setSuggestions(formattedSuggestions);
+      } else {
+        // Fallback to default suggestions if needed
+        console.log("No suggestions from API, using defaults");
+        setSuggestions([
+          {
+            id: 1,
+            type: 'Optimization',
+            title: 'Tax Loss Harvesting Opportunity',
+            description: 'Consider employing tax-loss harvesting strategies to offset gains.',
+            priority: 'high',
+            icon: TrendingUp,
+            status: 'actionable'
+          },
+          {
+            id: 2,
+            type: 'Compliance', 
+            title: 'Documentation Requirements',
+            description: 'Maintain comprehensive records of all transactions to ensure accurate reporting.',
+            priority: 'medium',
+            icon: AlertTriangle,
+            status: 'attention_required'
+          },
+          {
+            id: 3,
+            type: 'Strategy',
+            title: 'Professional Consultation',
+            description: 'Consult with a tax professional for tailored advice based on your situation.',
+            priority: 'medium',
+            icon: Lightbulb,
+            status: 'recommendation'
+          }
+        ]);
+      }
+    } catch (err) {
+      console.error('Error fetching suggestions:', err);
+      setError(err.message);
+      // Set default suggestions on error as well
+      setSuggestions([
+        {
+          id: 1,
+          type: 'Strategy',
+          title: 'Error Occurred',
+          description: 'We encountered an error loading your personalized suggestions. Please try again later.',
+          priority: 'medium',
+          icon: AlertTriangle,
+          status: 'attention_required'
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }, [/* No dependencies needed for these functions as they're defined in component scope */]);
+
+  // Run the fetch on component mount
+  useEffect(() => {
+    console.log("Component mounted, fetching suggestions");
+    fetchSuggestions();
+  }, [fetchSuggestions]); // Only depend on fetchSuggestions
 
   // Auto-scroll to bottom of chat when new messages are added
   useEffect(() => {
