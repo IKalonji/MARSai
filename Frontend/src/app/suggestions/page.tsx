@@ -60,6 +60,9 @@ const SuggestionsPage = () => {
         // Extract suggestions from the response
         if (data.suggestions && Array.isArray(data.suggestions)) {
           // Transform the suggestions into the format expected by the UI
+          console.log("Got suggestions -> ");
+          console.log(suggestions)
+      
           const formattedSuggestions = data.suggestions.map((suggestion, index) => ({
             id: index + 1,
             type: getTypeFromSuggestion(suggestion),
@@ -73,6 +76,8 @@ const SuggestionsPage = () => {
           setSuggestions(formattedSuggestions);
         } else {
           // Fallback to default suggestions if needed
+          console.log("No suggestions -> Fallback");
+          
           setSuggestions([
             {
               id: 1,
