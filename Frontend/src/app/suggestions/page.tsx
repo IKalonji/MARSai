@@ -72,9 +72,11 @@ const SuggestionsPage = () => {
             icon: getIconForSuggestion(suggestion),
             status: 'recommendation'
           }));
-          
+          console.log("Formatted suggestions -->", formattedSuggestions)
           setSuggestions(formattedSuggestions);
-          console.log(suggestions)
+          console.log("Suggetions from state --> ", suggestions)
+          console.log("Suggetions from API --> ", data.suggestions);
+          
         } else {
           // Fallback to default suggestions if needed
           console.log("No suggestions -> Fallback");
