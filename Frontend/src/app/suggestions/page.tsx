@@ -120,7 +120,7 @@ const SuggestionsPage = () => {
     };
 
     fetchSuggestions();
-  }, []);
+  }, [suggestions]);
 
   // Helper functions to categorize suggestions
   const getTypeFromSuggestion = (suggestion) => {
