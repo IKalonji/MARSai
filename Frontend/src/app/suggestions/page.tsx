@@ -34,7 +34,6 @@ const SuggestionsPage = () => {
     medium: 'bg-red-900/30 border-red-400/50 text-red-200'
   };
 
-  // Define helper functions first
   const getTypeFromSuggestion = (suggestion) => {
     if (suggestion.toLowerCase().includes('harvest')) return 'optimization';
     if (suggestion.toLowerCase().includes('record') || suggestion.toLowerCase().includes('document')) return 'compliance';
