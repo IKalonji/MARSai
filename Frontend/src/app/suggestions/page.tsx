@@ -61,7 +61,7 @@ const SuggestionsPage = () => {
         if (data.suggestions && Array.isArray(data.suggestions)) {
           // Transform the suggestions into the format expected by the UI
           console.log("Got suggestions -> ");
-          console.log(suggestions)
+          
       
           const formattedSuggestions = data.suggestions.map((suggestion, index) => ({
             id: index + 1,
@@ -74,6 +74,7 @@ const SuggestionsPage = () => {
           }));
           
           setSuggestions(formattedSuggestions);
+          console.log(suggestions)
         } else {
           // Fallback to default suggestions if needed
           console.log("No suggestions -> Fallback");
