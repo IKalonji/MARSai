@@ -170,7 +170,11 @@ const SuggestionsPage = () => {
   }, [chatMessages]);
 
   const handleSendMessage = async () => {
-    if (inputMessage.trim() === '' || isSending) return;
+    console.log('handleSendMessage called with input:', inputMessage);
+    if (inputMessage.trim() === '' || isSending) {
+      console.log('Message empty or already sending, returning');
+      return;
+    }
     
     // Add user message
     const newUserMessage = {
@@ -179,21 +183,39 @@ const SuggestionsPage = () => {
       text: inputMessage
     };
     
+    console.log('Adding user message to chat:', newUserMessage);
     setChatMessages(prev => [...prev, newUserMessage]);
     
     const messageToSend = inputMessage;
     setInputMessage('');
     setIsSending(true);
+
+     // TEMPORARY: Add mock response for testing
+  // Comment this out when you want to test the real API
+  setTimeout(() => {
+    console.log('Using mock response for testing');
+    const mockResponse = {
+      id: chatMessages.length + 2,
+      sender: 'bot',
+      text: "This is a test response. You said: " + messageToSend
+    };
+    console.log('Adding mock response to chat:', mockResponse);
+    setChatMessages(prev => [...prev, mockResponse]);
+    setIsSending(false);
+    return; // Skip the API call for testing
+  }, 1000);
     
     try {
       // Get wallet address
       const walletAddress = localStorage.getItem('walletAddress');
+      console.log('Wallet address from localStorage:', walletAddress);
       
       if (!walletAddress) {
         throw new Error('No wallet connected. Please connect your wallet first.');
       }
       
       // Call API to get bot response
+      console.log('About to call API with payload:', { query: messageToSend });
       const response = await fetch(`https://mars-ai-agent-igpko.ondigitalocean.app/agent/chat/${walletAddress}`, {
         method: 'POST',
         headers: {
@@ -201,12 +223,15 @@ const SuggestionsPage = () => {
         },
         body: JSON.stringify({ query: messageToSend }),
       });
+
+      console.log('API response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
+      console.log('API response data:', data);
       
       // Add bot response
       const botResponse = {
@@ -215,6 +240,7 @@ const SuggestionsPage = () => {
         text: data.response || "I'm sorry, I couldn't process your request. Please try again."
       };
       
+      console.log('Adding bot response to chat:', botResponse);
       setChatMessages(prev => [...prev, botResponse]);
     } catch (error) {
       console.error('Chat error:', error);
@@ -226,6 +252,7 @@ const SuggestionsPage = () => {
         text: `I encountered an error: ${error.message}. Please try again later.`
       };
       
+      console.log('Adding error response to chat:', errorResponse);
       setChatMessages(prev => [...prev, errorResponse]);
     } finally {
       setIsSending(false);
