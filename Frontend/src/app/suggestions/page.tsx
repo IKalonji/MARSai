@@ -189,21 +189,6 @@ const SuggestionsPage = () => {
     const messageToSend = inputMessage;
     setInputMessage('');
     setIsSending(true);
-
-     // TEMPORARY: Add mock response for testing
-  // Comment this out when you want to test the real API
-  setTimeout(() => {
-    console.log('Using mock response for testing');
-    const mockResponse = {
-      id: chatMessages.length + 2,
-      sender: 'bot',
-      text: "This is a test response. You said: " + messageToSend
-    };
-    console.log('Adding mock response to chat:', mockResponse);
-    setChatMessages(prev => [...prev, mockResponse]);
-    setIsSending(false);
-    return; // Skip the API call for testing
-  }, 1000);
     
     try {
       // Get wallet address
@@ -237,8 +222,10 @@ const SuggestionsPage = () => {
       const botResponse = {
         id: chatMessages.length + 2,
         sender: 'bot',
-        text: data.response || "I'm sorry, I couldn't process your request. Please try again."
+        text: data.analysis || data.response || "I'm sorry, I couldn't process your request. Please try again."
       };
+
+      
       
       console.log('Adding bot response to chat:', botResponse);
       setChatMessages(prev => [...prev, botResponse]);
