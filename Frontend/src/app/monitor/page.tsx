@@ -33,7 +33,8 @@ interface WalletPermission {
 const SUPPORTED_NETWORKS: NetworkOption[] = [
   { id: 'eth', name: 'Ethereum', chainId: 1 },
   { id: 'base', name: 'Base', chainId: 8453 },
-  { id: 'arbitrum', name: 'Arbitrum', chainId: 42161 }
+  { id: 'arbitrum', name: 'Arbitrum', chainId: 42161 },
+  { id: 'monad', name: 'Monad Testnet', chainId: 10143}
 ];
 
 const Monitor = () => {
