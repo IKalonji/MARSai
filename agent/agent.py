@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from api_client import get_wallet_transactions
 from utils import validate_transaction_data  
+from db_client import SQLiteDBActions
 
 load_dotenv()  
 
@@ -16,6 +17,9 @@ class Agent():
         self.wallet_address = wallet_address
         openai.api_key = self.agent_key
         self.context = None
+        self.TABLE_NAME = "analysis_history"
+        self.db_instance = SQLiteDBActions('analysisDB.db')
+        self.db_instance.insert_into_table(self.TABLE_NAME, {"user": self.wallet_address, "agent_name": self.name})
 
     def get_system_prompt(self, file):
 
@@ -46,7 +50,7 @@ class Agent():
 
         return self.send_query_to_llm(system_prompt, message)
 
-    def send_query_to_llm(self, system_prompt, content):
+    def send_query_to_llm(self, system_prompt, content, flag=None):
         print("Sending to LLM")
         messages = [
             {"role": "system", "content": system_prompt},
@@ -69,7 +73,8 @@ class Agent():
                 print(json_response)
                 if not isinstance(json_response, dict) or "analysis" not in json_response:
                     raise ValueError("Invalid JSON response format from AI.")
-
+                if flag == "ANALYSIS":
+                    self.db_instance.update_table(self.TABLE_NAME, {"analysis_as text":json_response, "analysis_transactions":content}, {"user":self.wallet_address})
                 return json_response 
 
             except json.JSONDecodeError as e:
@@ -117,9 +122,16 @@ class Agent():
                 "response": "error",
                 "error": "Invalid transaction data received."
             }
-
+        
+        #get the current transaction history from DB
+        db_data = self.db_instance.fetch_from_table(self.TABLE_NAME, ["analysis_as text", "analysis_transactions"], "user", (self.wallet_address,))
+        #compare db result to api result
+        transaction_match = json.dumps(db_data[1]) == json.dumps(transactions)
+        #if different/no data; call llm
+        if transaction_match:
+            return json.dumps(db_data[0])
+        #else return the analysis from db.
         system_prompt = self.get_system_prompt("system_prompt.txt")
-
         return self.send_query_to_llm(system_prompt, json.dumps(transactions))
     
     

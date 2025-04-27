@@ -1,9 +1,18 @@
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
 from agent import Agent
+from db_client import SQLiteDB
 
 app = Flask(__name__)
 CORS(app=app)
+
+DBCLIENT = SQLiteDB("analysisDB")
+DBCLIENT.create_table("analysis_history", {
+    "user": "TEXT UNIQUE", #Wallet address,
+    "agent_name": "TEXT",
+    "analysis_as text": "TEXT",
+    "analysis_transactions": "TEXT"
+})
 
 deployed_agents = {}
 
