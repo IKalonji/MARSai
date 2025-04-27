@@ -202,7 +202,7 @@ export default function Features() {
                   />
                   <textarea
                     placeholder="Tell us about your requirements"
-                    rows="3"
+                    rows={3}
                     className="w-full bg-white/5 border border-red-800/30 rounded-lg p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400/50"
                   ></textarea>
                   <button className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-full font-semibold transition-colors">
