@@ -186,7 +186,7 @@ export default function Features() {
                 <div className="flex items-center gap-3 mb-4">
                   <Mail className="w-5 h-5 text-red-400" />
                   <a href="mailto:enterprise@mars.ai" className="text-white hover:text-red-300 transition-colors">
-                    liampatrickmcm@gmail.com
+                    liam@marsai.com
                   </a>
                 </div>
                 <form className="space-y-4">
