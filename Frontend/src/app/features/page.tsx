@@ -1,5 +1,5 @@
 import React from 'react';
-import { Rocket, Check, Download, AlertCircle, Star, Wallet, Calculator, FileSpreadsheet } from 'lucide-react';
+import { Rocket, Check, Download, AlertCircle, Star, Wallet, Calculator, FileSpreadsheet, Building2, Mail, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Features() {
@@ -85,7 +85,7 @@ export default function Features() {
               </div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold">Martian</h2>
-                <span className="text-red-400">Premium</span>
+                <span className="text-red-400">$15</span>
               </div>
               <div className="space-y-4 mb-8">
                 <div className="flex items-start gap-2">
@@ -152,6 +152,67 @@ export default function Features() {
               </table>
             </div>
           </div>
+
+          {/* Enterprise Contact Section */}
+          <div className="mt-24 bg-gradient-to-r from-red-800/30 to-red-900/30 backdrop-blur-lg rounded-lg p-8 border border-red-700/50">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <Building2 className="w-6 h-6 text-red-400" />
+                  <h2 className="text-2xl font-semibold">Enterprise Integrations</h2>
+                </div>
+                <p className="text-gray-300 mb-6">
+                  Custom solutions for accounting firms, financial institutions, and large organizations. 
+                  MARS.ai provides enterprise-grade API access, bulk processing, and dedicated support tailored to your business needs.
+                </p>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2">
+                    <Check className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
+                    <span>API integrations with existing financial systems</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
+                    <span>Dedicated account manager and technical support</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
+                    <span>Custom reporting and compliance solutions</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-lg rounded-lg p-6 md:p-8 w-full md:w-auto md:min-w-80">
+                <h3 className="text-xl font-semibold mb-4 text-red-300">Contact Us</h3>
+                <div className="flex items-center gap-3 mb-4">
+                  <Mail className="w-5 h-5 text-red-400" />
+                  <a href="mailto:enterprise@mars.ai" className="text-white hover:text-red-300 transition-colors">
+                    liampatrickmcm@gmail.com
+                  </a>
+                </div>
+                <form className="space-y-4">
+                  <input
+                    type="text"
+                    placeholder="Company Name"
+                    className="w-full bg-white/5 border border-red-800/30 rounded-lg p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400/50"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email Address"
+                    className="w-full bg-white/5 border border-red-800/30 rounded-lg p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400/50"
+                  />
+                  <textarea
+                    placeholder="Tell us about your requirements"
+                    rows="3"
+                    className="w-full bg-white/5 border border-red-800/30 rounded-lg p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400/50"
+                  ></textarea>
+                  <button className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-full font-semibold transition-colors">
+                    Request Information
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
         </main>
 
         {/* Footer */}
@@ -166,5 +227,4 @@ export default function Features() {
       </div>
     </div>
   )
-
 };

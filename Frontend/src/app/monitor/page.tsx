@@ -1,8 +1,7 @@
 'use client'
 
-
 import React, { useState, useEffect } from 'react';
-import { Wallet, ArrowRight, Clock, AlertCircle, Rocket, LogOut } from 'lucide-react';
+import { Wallet, ArrowRight, Clock, AlertCircle, Rocket, LogOut, CreditCard, BarChart3, TrendingUp, CoinsIcon, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { useSyncProviders } from "../hooks/useSyncProviders";
 
@@ -14,6 +13,8 @@ interface ValidationErrors {
   timeframe?: string;
   analysisType?: string;
   network?: string;
+  permissions?: string;
+  submit?: string;
 }
 
 interface NetworkOption {
@@ -50,6 +51,9 @@ const Monitor = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const providers = useSyncProviders();
   const [agentName, setAgentName] = useState('');
+  //New state variables
+  const [taxClassification, setTaxClassification] = useState('revenue'); 
+  const [valuationMethod, setValuationMethod] = useState('wac');
 
   useEffect(() => {
     if (selectedWallet) {
@@ -334,8 +338,8 @@ const Monitor = () => {
           miningIncome: (document.getElementById('miningIncome') as HTMLInputElement)?.checked,
           stakingRewards: (document.getElementById('stakingRewards') as HTMLInputElement)?.checked,
         },
-        taxClassification: (document.getElementById('taxClassification') as HTMLSelectElement)?.value,
-        valuationMethod: (document.getElementById('valuationMethod') as HTMLSelectElement)?.value
+        taxClassification: taxClassification,
+        valuationMethod: valuationMethod
       };
 
       console.log('Submitting analysis:', analysisData);
@@ -414,7 +418,7 @@ const Monitor = () => {
                     disabled={true}
                     className={`p-3 rounded-lg bg-white/5 border border-red-800/50 text-white ${
                       !walletAddress ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                    } appearance-none`} // Add appearance-none to remove the arrow
+                    } appearance-none`}
                   >
                     {SUPPORTED_NETWORKS.map((network) => (
                       <option key={network.id} value={network.id}>
@@ -424,35 +428,35 @@ const Monitor = () => {
                   </select>
                   
                   <div className="flex gap-2">
-        {walletAddress ? (
-          <button
-            onClick={revokePermissions}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg flex items-center gap-2"
-          >
-            <LogOut className="w-5 h-5" />
-            Disconnect
-          </button>
-        ) : (
-          providers.length > 0 ? providers?.map((provider: EIP6963ProviderDetail) => (
-            <button 
-              className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              key={provider.info.uuid} 
-              onClick={() => handleConnect(provider)}
-              disabled={isSubmitting}
-            >
-              <img src={provider.info.icon} alt={provider.info.name} className="w-6 h-6" />
-              <span>Connect</span>
-            </button>
-          )) : (
-            <div className="text-red-500">
-              No Announced Wallet Providers
-            </div>
-          )
-        )}
-      </div>
-    </div>
+                    {walletAddress ? (
+                      <button
+                        onClick={revokePermissions}
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg flex items-center gap-2"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        Disconnect
+                      </button>
+                    ) : (
+                      providers.length > 0 ? providers?.map((provider: EIP6963ProviderDetail) => (
+                        <button 
+                          className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          key={provider.info.uuid} 
+                          onClick={() => handleConnect(provider)}
+                          disabled={isSubmitting}
+                        >
+                          <img src={provider.info.icon} alt={provider.info.name} className="w-6 h-6" />
+                          <span>Connect</span>
+                        </button>
+                      )) : (
+                        <div className="text-red-500">
+                          No Announced Wallet Providers
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
               </div>
-             {errors.walletAddress && (
+              {errors.walletAddress && (
                 <p className="mt-2 text-red-500 text-sm">{errors.walletAddress}</p>
               )}
               {errors.network && (
@@ -466,50 +470,125 @@ const Monitor = () => {
               )}
             </div>
 
-            {/* Rest of the form components */}
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="p-4 bg-white/5 rounded-lg border border-red-800/50">
-                <h3 className="font-medium mb-2">Time Period</h3>
-                <select
-                  value={selectedTimeframe}
-                  onChange={(e) => setSelectedTimeframe(e.target.value)}
-                  className="w-full p-2 rounded bg-white/5 border border-red-800/50 text-white"
-                >
-                  <option value="year">Past Year</option>
-                  <option value="quarter">Past Quarter</option>
-                  <option value="month">Past Month</option>
-                  <option value="custom">Custom Range</option>
-                </select>
-              </div>
-
-              <div className="p-4 bg-white/5 rounded-lg border border-red-800/50">
-                <h3 className="font-medium mb-2">Analysis Type</h3>
-                <div className="space-y-2">
-                  <label className="flex items-center">
-                    <input type="checkbox" className="mr-2" defaultChecked />
-                    Capital Gains
-                  </label>
-                  <label className="flex items-center">
-                    <input type="checkbox" className="mr-2" defaultChecked />
-                    Income Tax
-                  </label>
+            {/* Updated Tax Classification and Valuation Method */}
+            <div className="grid md:grid-cols-2 gap-6 mt-8">
+              {/* Tax Classification Card */}
+              <div className="bg-gradient-to-br from-red-900/30 to-red-950/30 backdrop-blur-lg rounded-lg border border-red-700/50 overflow-hidden">
+                <div className="bg-red-800/50 p-4 flex items-center gap-3">
+                  <BarChart3 className="w-5 h-5 text-red-300" />
+                  <h3 className="font-medium text-lg">Tax Classification</h3>
+                </div>
+                
+                <div className="p-5 space-y-4">
+                  <p className="text-gray-300 text-sm mb-4">Choose how your crypto activities should be classified for tax purposes</p>
+                  
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-red-800/50 cursor-pointer hover:bg-white/10 transition-colors">
+                      <input 
+                        type="radio" 
+                        name="taxClassification" 
+                        value="revenue" 
+                        checked={taxClassification === 'revenue'}
+                        onChange={() => setTaxClassification('revenue')}
+                        className="text-red-500 border-red-800/50 focus:ring-red-400"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Revenue (Trading Income)</span>
+                        <span className="text-xs text-gray-400">For frequent traders or businesses</span>
+                      </div>
+                    </label>
+                    
+                    <label className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-red-800/50 cursor-pointer hover:bg-white/10 transition-colors">
+                      <input 
+                        type="radio" 
+                        name="taxClassification" 
+                        value="capital"
+                        checked={taxClassification === 'capital'}
+                        onChange={() => setTaxClassification('capital')}
+                        className="text-red-500 border-red-800/50 focus:ring-red-400"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Capital Gains</span>
+                        <span className="text-xs text-gray-400">For long-term holders and investors</span>
+                      </div>
+                    </label>
+                    
+                    <label className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-red-800/50 cursor-pointer hover:bg-white/10 transition-colors">
+                      <input 
+                        type="radio" 
+                        name="taxClassification" 
+                        value="mixed"
+                        checked={taxClassification === 'mixed'}
+                        onChange={() => setTaxClassification('mixed')}
+                        className="text-red-500 border-red-800/50 focus:ring-red-400"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Mixed Purpose</span>
+                        <span className="text-xs text-gray-400">For combined trading and investing activities</span>
+                      </div>
+                    </label>
+                  </div>
                 </div>
               </div>
-
-              <div className="p-4 bg-white/5 rounded-lg border border-red-800/50">
-                <h3 className="font-medium mb-2">Tax Classification</h3>
-                <select className="w-full p-2 rounded bg-white/5 border border-red-800/50 text-white mb-2">
-                  <option value="revenue">Revenue (Trading Income)</option>
-                  <option value="capital">Capital Gains</option>
-                  <option value="mixed">Mixed Purpose</option>
-                </select>
-
-                <h3 className="font-medium mb-2 mt-4">Valuation Method</h3>
-                <select className="w-full p-2 rounded bg-white/5 border border-red-800/50 text-white">
-                  <option value="wac">Weighted Average Cost (SARS Preferred)</option>
-                  <option value="fifo">First-In-First-Out</option>
-                  <option value="specific">Specific Identification</option>
-                </select>
+              
+              {/* Valuation Method Card */}
+              <div className="bg-gradient-to-br from-red-900/30 to-red-950/30 backdrop-blur-lg rounded-lg border border-red-700/50 overflow-hidden">
+                <div className="bg-red-800/50 p-4 flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-red-300" />
+                  <h3 className="font-medium text-lg">Valuation Method</h3>
+                </div>
+                
+                <div className="p-5 space-y-4">
+                  <p className="text-gray-300 text-sm mb-4">Select how to calculate cost basis for your crypto assets</p>
+                  
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-red-800/50 cursor-pointer hover:bg-white/10 transition-colors">
+                      <input 
+                        type="radio" 
+                        name="valuationMethod" 
+                        value="wac"
+                        checked={valuationMethod === 'wac'}
+                        onChange={() => setValuationMethod('wac')}
+                        className="text-red-500 border-red-800/50 focus:ring-red-400"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Weighted Average Cost</span>
+                        <span className="text-xs text-red-400">SARS Preferred Method</span>
+                        <span className="text-xs text-gray-400">Averages the cost of all purchases</span>
+                      </div>
+                    </label>
+                    
+                    <label className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-red-800/50 cursor-pointer hover:bg-white/10 transition-colors">
+                      <input 
+                        type="radio" 
+                        name="valuationMethod" 
+                        value="fifo"
+                        checked={valuationMethod === 'fifo'}
+                        onChange={() => setValuationMethod('fifo')}
+                        className="text-red-500 border-red-800/50 focus:ring-red-400"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">First-In-First-Out</span>
+                        <span className="text-xs text-gray-400">Assumes oldest purchases are sold first</span>
+                      </div>
+                    </label>
+                    
+                    <label className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-red-800/50 cursor-pointer hover:bg-white/10 transition-colors">
+                      <input 
+                        type="radio" 
+                        name="valuationMethod" 
+                        value="specific"
+                        checked={valuationMethod === 'specific'}
+                        onChange={() => setValuationMethod('specific')}
+                        className="text-red-500 border-red-800/50 focus:ring-red-400"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Specific Identification</span>
+                        <span className="text-xs text-gray-400">Manually select which units are sold</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -532,7 +611,7 @@ const Monitor = () => {
                   </>
                 ) : (
                   <>
-                    {agentName == '' ? "Deploy Agent" : ("Launch "+ agentName)}
+                    {agentName === '' ? "Deploy Agent" : ("Launch "+ agentName)}
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}
