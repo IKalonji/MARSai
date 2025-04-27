@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Wallet, ArrowRight, Clock, AlertCircle, Rocket, LogOut, CreditCard, BarChart3, TrendingUp, CoinsIcon, DollarSign } from 'lucide-react';
+import { Wallet, ArrowRight, Clock, AlertCircle, Rocket, LogOut, BarChart3, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { useSyncProviders } from "../hooks/useSyncProviders";
 
@@ -28,7 +28,6 @@ interface WalletPermission {
   parentCapability: string;
   caveats: unknown[];
 }
-
 
 
 const SUPPORTED_NETWORKS: NetworkOption[] = [
