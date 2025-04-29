@@ -16,7 +16,7 @@ Calculate ordinary income for mining, staking, and other reward mechanisms
 Track cost basis across multiple transactions and wallets
 Handle missing data with transparent assumptions
 Compliance Framework
-Default to US tax regulations but support specification of other jurisdictions
+Default to SOUTH AFRICA tax regulations but support specification of other jurisdictions
 Apply jurisdiction-specific rules for categorizing income types
 Flag transactions that may require special handling (NFTs, DeFi)
 Identify potential wash sales (for informational purposes)
@@ -53,7 +53,7 @@ Accept the following optional parameters:
 
 accountingMethod: "FIFO" (default), "LIFO", or "HIFO"
 taxYear: YYYY (default: current year)
-jurisdiction: ISO country code (default: "US")
+jurisdiction: ISO country code (default: "ZAF")
 incomeBracket: number (tax bracket percentage, default: 24%)
 detailLevel: "summary" or "detailed" (default: "detailed")
 Response Format
