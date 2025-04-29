@@ -29,7 +29,7 @@ def get_wallet_transactions(wallet_address, api_url=None):
 
 if __name__ == '__main__':
       
-    wallet_address = ""  
+    wallet_address = "0x5590882e54bb029ba24d54908cd225a1a27cb398"  
     
     transactions = get_wallet_transactions(wallet_address, api_url=os.getenv("TRANSACTION_API_URL"))
 
